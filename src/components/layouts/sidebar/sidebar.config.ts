@@ -9,6 +9,8 @@ import {
     BookHeart,
     LibraryBig,
     Share,
+    Rss,
+    MessageCircle,
 } from "lucide-react";
 
 export type SidebarItem = {
@@ -33,6 +35,17 @@ export const sidebarConfig: SidebarSection[] = [
     },
 
     {
+        label: "Komunitas",
+        collapsible: true,
+        key: "community",
+        icon: Rss,
+        items: [
+            { title: "Status Publik", url: "/posts", icon: Rss },
+            { title: "Komentar", url: "/comments", icon: MessageCircle },
+        ],
+    },
+
+    {
         label: "Perpustakaan",
         collapsible: true,
         key: "libraries",
@@ -40,7 +53,7 @@ export const sidebarConfig: SidebarSection[] = [
         items: [
             { title: "Buku", url: "/books", icon: BookHeart },
             { title: "Penulis", url: "/authors", icon: PencilRuler },
-            { title: "Penerbit", url: "/settings/users", icon: Share },
+            // { title: "Penerbit", url: "/settings/users", icon: Share },
         ],
     },
 
