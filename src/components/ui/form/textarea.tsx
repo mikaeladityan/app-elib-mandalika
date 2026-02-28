@@ -29,11 +29,8 @@ export function TextareaForm({
             render={({ field }) => (
                 <div className="w-full space-y-1">
                     {label && (
-                        <label
-                            htmlFor={name}
-                            className="font-black italic tracking-wider uppercase text-gray-500 text-sm"
-                        >
-                            {label} {props.required && <p className="text-red-500">*</p>}
+                        <label htmlFor={name} className="font-semibold text-sm">
+                            {label} {props.required && <span className="text-red-500">*</span>}
                         </label>
                     )}
                     <div className="relative">

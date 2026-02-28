@@ -1,3 +1,5 @@
+"use client";
+
 import { Input } from "../input";
 import { cn } from "@/lib/utils";
 import { Eye, EyeOff } from "lucide-react";
@@ -13,7 +15,7 @@ type PropsInputForm = {
     onToggleVisibility?: () => void;
     isVisible?: boolean;
     isCurrency?: boolean;
-    suffix?: string | ReactNode; // Tambahkan prop ini
+    suffix?: string | ReactNode;
 };
 
 export function InputForm({
@@ -36,9 +38,12 @@ export function InputForm({
             render={({ field: { onChange, value, ...field } }) => {
                 const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                     let val = e.target.value;
+
                     if (props.type === "number") {
+                        // Mengizinkan input kosong agar tidak langsung jadi 0
                         onChange(val === "" ? "" : Number(val));
                     } else if (isCurrency) {
+                        // Menghapus semua karakter non-digit untuk simpan angka murni
                         const numericValue = val.replace(/\D/g, "");
                         onChange(numericValue === "" ? "" : Number(numericValue));
                     } else {
@@ -46,6 +51,7 @@ export function InputForm({
                     }
                 };
 
+                // Formatter untuk tampilan mata uang (IDR)
                 const displayValue =
                     isCurrency && value !== "" && value !== undefined
                         ? new Intl.NumberFormat("id-ID").format(Number(value))
@@ -53,10 +59,7 @@ export function InputForm({
 
                 return (
                     <div className="w-full space-y-1">
-                        <label
-                            htmlFor={name}
-                            className="font-black italic tracking-wider uppercase text-gray-500 text-sm"
-                        >
+                        <label htmlFor={name} className="font-semibold text-sm">
                             {label || name}{" "}
                             {props.required && <span className="text-red-500">*</span>}
                         </label>
@@ -68,8 +71,16 @@ export function InputForm({
                                 id={name}
                                 value={displayValue}
                                 onChange={handleInputChange}
+                                // SOLUSI 1: Mematikan scroll wheel agar angka tidak berubah
+                                onWheel={(e) => {
+                                    if (props.type === "number") {
+                                        e.currentTarget.blur();
+                                    }
+                                }}
                                 className={cn(
                                     "border-gray-600 pr-10 rounded-sm",
+                                    // SOLUSI 2: Menghilangkan panah naik-turun (spinner)
+                                    "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                                     className,
                                     error && "border-red-500",
                                 )}

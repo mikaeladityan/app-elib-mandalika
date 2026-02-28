@@ -162,7 +162,7 @@ export function useActionAuthor() {
     };
 }
 
-export function useFormAuthor(id?: number) {
+export function useFormAuthor(id?: number, ref?: string) {
     const setErr = useSetAtom(errorAtom);
     const setNotif = useSetAtom(notificationAtom);
     const queryClient = useQueryClient();
@@ -175,11 +175,16 @@ export function useFormAuthor(id?: number) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["authors"], type: "all" });
+            queryClient.invalidateQueries({ queryKey: ["books"], type: "all" });
             setNotif({
                 title: "Data Penulis",
                 message: "Data penulis berhasil disimpan.",
             });
-            router.push("/authors");
+            if (ref) {
+                router.push(`/${ref}`);
+            } else {
+                router.push("/authors");
+            }
         },
     });
 
@@ -191,6 +196,7 @@ export function useFormAuthor(id?: number) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["authors"], type: "all" });
+            queryClient.invalidateQueries({ queryKey: ["books"], type: "all" });
             setNotif({
                 title: "Data Penulis",
                 message: "Update penulis berhasil disimpan.",

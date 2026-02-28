@@ -1,184 +1,218 @@
-// src/components/ui/form/creatable-combobox.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { useController, FieldError } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown, Loader, Loader2, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
 import {
     Command,
     CommandEmpty,
     CommandGroup,
     CommandInput,
     CommandItem,
+    CommandList,
 } from "@/components/ui/command";
-import { Skeleton } from "@/components/ui/skeleton";
-import { SetStateAction } from "jotai";
+import { Badge } from "@/components/ui/badge";
 
 type EnhancedCreatableComboboxProps = {
-    name: string; // Hanya satu field name yang dibutuhkan
+    name: string;
     label?: string;
     control: any;
     placeholder?: string;
-    options: { value: string; label: string; id?: number }[];
+    options: { value: string | number; label: string; id?: number }[];
     isLoading?: boolean;
     isError?: boolean;
     refetch?: () => void;
     className?: string;
-    setSelectedId?: React.Dispatch<SetStateAction<number | null>>;
     required?: boolean;
+    multiple?: boolean; // Prop baru untuk menentukan mode
 };
 
 export function EnhancedCreatableCombobox({
     name,
     label,
     control,
-    placeholder = "Pilih atau buat baru",
-    options,
+    placeholder = "Pilih data",
+    options = [],
     isLoading = false,
     isError = false,
     refetch,
     className,
-    setSelectedId,
     required = false,
+    multiple = false, // Default ke single select
 }: EnhancedCreatableComboboxProps) {
     const { field, fieldState } = useController({ name, control });
     const [open, setOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
-    const error = fieldState.error as FieldError | undefined;
 
-    useEffect(() => {
-        if (!open) {
-            setSearchValue("");
-        }
-    }, [open]);
+    // Helper untuk menangani data agar tidak error saat map/filter
+    const getValues = (): string[] => {
+        if (!field.value) return [];
+        return Array.isArray(field.value) ? field.value : [field.value];
+    };
 
-    const displayValue = field.value
-        ? options.find((option) => option.value.toLowerCase() === field.value.toLowerCase())
-              ?.label || field.value
-        : "";
+    const selectedValues = getValues();
 
-    const handleSelect = (value: string, id?: number) => {
-        if (setSelectedId) {
-            setSelectedId(Number(id));
-            field.onChange(value);
-            setOpen(false);
+    const handleSelect = (val: string) => {
+        if (multiple) {
+            const newValue = selectedValues.includes(val)
+                ? selectedValues.filter((v) => v !== val)
+                : [...selectedValues, val];
+            field.onChange(newValue);
         } else {
-            field.onChange(value);
+            field.onChange(val);
             setOpen(false);
         }
+        setSearchValue("");
     };
 
     const handleCreate = () => {
-        if (searchValue.trim()) {
-            field.onChange(searchValue.trim());
-            setOpen(false);
-            if (setSelectedId) {
-                setSelectedId(null);
+        const trimmed = searchValue.trim();
+        if (!trimmed) return;
+
+        if (multiple) {
+            if (!selectedValues.includes(trimmed)) {
+                field.onChange([...selectedValues, trimmed]);
             }
+        } else {
+            field.onChange(trimmed);
+            setOpen(false);
         }
+        setSearchValue("");
     };
 
-    const hasMatchingOption = options.some((option) =>
-        option.label.toLowerCase().includes(searchValue.toLowerCase()),
-    );
+    const handleRemoveTag = (e: React.MouseEvent, val: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentValues = Array.isArray(field.value) ? field.value : [];
+        const newValue = currentValues.filter((v: any) => String(v) !== String(val));
+
+        field.onChange(newValue);
+    };
+
+    // Teks yang muncul di tombol trigger
+    const renderTriggerContent = () => {
+        if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+
+        if (selectedValues.length === 0)
+            return <span className="text-muted-foreground">{placeholder}</span>;
+
+        if (multiple) {
+            return (
+                <div className="flex flex-wrap gap-1 py-1">
+                    {selectedValues.map((val) => {
+                        const labelObj = options.find((o) => String(o.value) === String(val));
+                        const labelText = labelObj ? labelObj.label : val;
+
+                        return (
+                            <Badge
+                                key={val}
+                                variant="secondary"
+                                className="rounded-sm font-medium capitalize flex items-center gap-1 pr-1"
+                            >
+                                {labelText}
+                                <div
+                                    role="button"
+                                    className="ml-1 rounded-full outline-none hover:bg-rose-100 hover:text-rose-600 p-0.5 transition-colors"
+                                    onClick={(e) => handleRemoveTag(e, String(val))}
+                                >
+                                    <X className="h-3 w-3" />
+                                </div>
+                            </Badge>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // Single Mode display
+        const activeLabel = options.find((o) => o.value === field.value)?.label || field.value;
+        return <span className="truncate capitalize">{activeLabel}</span>;
+    };
 
     return (
         <div className={cn("w-full space-y-1", className)}>
             {label && (
                 <label className="font-semibold text-sm">
-                    {label} {required && <span className="text-sm text-red-500">*</span>}
+                    {label} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
+
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
-                        role="combobox"
-                        aria-expanded={open}
-                        disabled={isLoading} // Menambahkan properti disabled saat isLoading
-                        className="w-full justify-between border-gray-600"
+                        className={cn(
+                            "w-full justify-between border-gray-600 min-h-10 h-auto rounded-md px-3 text-sm font-normal",
+                            fieldState.error && "border-red-500",
+                        )}
                     >
-                        <span className="truncate">
-                            {displayValue || (
-                                <div className="flex items-center justify-start gap-2">
-                                    {isLoading && <Loader2 className="animate-spin" />}
-                                    {placeholder}
-                                </div>
-                            )}
-                        </span>
+                        {renderTriggerContent()}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                    className="w-full p-0"
-                    style={{ width: "var(--radix-popover-trigger-width)" }}
-                >
+                <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
                     <Command shouldFilter={false}>
                         <CommandInput
-                            placeholder="Cari atau buat baru..."
+                            placeholder={`Cari atau buat ${label?.toLowerCase()} baru...`}
                             value={searchValue}
                             onValueChange={setSearchValue}
                         />
-                        {searchValue && !hasMatchingOption && (
-                            <CommandGroup>
-                                <CommandItem value={searchValue} onSelect={handleCreate}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Buat baru: {searchValue}
-                                </CommandItem>
-                            </CommandGroup>
-                        )}
-                        {options.length > 0 && (
-                            <CommandGroup>
-                                {options.map((option) => (
-                                    <CommandItem
-                                        key={option.value}
-                                        value={option.value}
-                                        className="capitalize"
-                                        onSelect={() => handleSelect(option.value, option.id)}
-                                    >
-                                        <Check
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
-                                                field.value === option.value
-                                                    ? "opacity-100"
-                                                    : "opacity-0",
-                                            )}
-                                        />
-                                        {option.label}
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        )}
-                        <CommandEmpty>
-                            <div className="flex flex-col gap-2 py-2 px-4">
-                                {isError && refetch && (
-                                    <button
-                                        type="button"
-                                        className="text-red-500 hover:underline"
-                                        onClick={() => refetch()}
-                                    >
-                                        Gagal memuat data. Coba lagi?
-                                    </button>
+                        <CommandList>
+                            {/* Create New Option */}
+                            {searchValue &&
+                                !options.some(
+                                    (o) => o.label.toLowerCase() === searchValue.toLowerCase(),
+                                ) && (
+                                    <CommandGroup>
+                                        <CommandItem
+                                            onSelect={handleCreate}
+                                            className="cursor-pointer"
+                                        >
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Buat:{" "}
+                                            <span className="font-bold ml-1">"{searchValue}"</span>
+                                        </CommandItem>
+                                    </CommandGroup>
                                 )}
-                                {!searchValue && !isError && !isLoading && (
-                                    <div className="text-gray-500">
-                                        Ketik untuk mencari atau membuat baru
-                                    </div>
-                                )}
-                            </div>
-                        </CommandEmpty>
-                        {isLoading && (
-                            <div className="py-4 px-4">
-                                <Skeleton className="h-8 w-full mb-2" />
-                                <Skeleton className="h-8 w-full" />
-                            </div>
-                        )}
+
+                            <CommandGroup className="max-h-64 overflow-auto">
+                                {options
+                                    .filter((o) =>
+                                        o.label.toLowerCase().includes(searchValue.toLowerCase()),
+                                    )
+                                    .map((option) => (
+                                        <CommandItem
+                                            key={option.value}
+                                            onSelect={() => handleSelect(String(option.value))}
+                                            className="capitalize cursor-pointer"
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    selectedValues.includes(String(option.value))
+                                                        ? "opacity-100"
+                                                        : "opacity-0",
+                                                )}
+                                            />
+                                            {option.label}
+                                        </CommandItem>
+                                    ))}
+                            </CommandGroup>
+                            <CommandEmpty className="p-4 text-xs text-center text-muted-foreground">
+                                {isError ? "Gagal memuat data" : "Tidak ditemukan"}
+                            </CommandEmpty>
+                        </CommandList>
                     </Command>
                 </PopoverContent>
             </Popover>
-            {error?.message && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
+
+            {fieldState.error?.message && (
+                <p className="text-red-500 text-xs mt-1">{fieldState.error.message}</p>
+            )}
         </div>
     );
 }

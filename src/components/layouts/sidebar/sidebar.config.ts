@@ -38,7 +38,7 @@ export const sidebarConfig: SidebarSection[] = [
         key: "libraries",
         icon: LibraryBig,
         items: [
-            { title: "Buku", url: "/libraries", icon: BookHeart },
+            { title: "Buku", url: "/books", icon: BookHeart },
             { title: "Penulis", url: "/authors", icon: PencilRuler },
             { title: "Penerbit", url: "/settings/users", icon: Share },
         ],

@@ -4,6 +4,7 @@ import {
     RequestAuthorSchema,
 } from "@/app/(application)/authors/server/author.schema";
 import { useFormAuthor } from "@/app/(application)/authors/server/use.author";
+import { LogData } from "@/components/log";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputForm } from "@/components/ui/form/input";
@@ -11,10 +12,13 @@ import { Form } from "@/components/ui/form/main";
 import { TextareaForm } from "@/components/ui/form/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Loader2, RefreshCcw, Save } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 export function CreateAuthor() {
-    const { create, isPending } = useFormAuthor();
+    const query = useSearchParams();
+    const ref = query.get("ref");
+    const { create, isPending } = useFormAuthor(undefined, ref || undefined);
     const form = useForm<RequestAuthorDTO>({
         resolver: zodResolver(RequestAuthorSchema),
         defaultValues: {
@@ -30,6 +34,7 @@ export function CreateAuthor() {
 
     return (
         <Card className="w-full lg:w-6/12">
+            <LogData data={ref} />
             <CardHeader>
                 <CardTitle className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     <div className="flex items-center justify-start gap-3">

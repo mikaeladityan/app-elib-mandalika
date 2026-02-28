@@ -1,5 +1,5 @@
 import z from "zod";
-import { RequestBookSchema } from "../../book/server/book.schema";
+import { RequestBookSchema } from "../../books/server/book.schema";
 
 export const RequestAuthorSchema = z.object({
     first_name: z

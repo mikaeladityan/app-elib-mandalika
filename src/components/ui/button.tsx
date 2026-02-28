@@ -69,6 +69,9 @@ const buttonVariants = cva(
                 // Icon size (square button)
                 icon: "size-9",
             },
+            theme: {
+                brutal: "font-black italic uppercase tracking-wide",
+            },
         },
         defaultVariants: {
             variant: "default",
@@ -91,12 +94,12 @@ export interface ButtonProps
  * and `cva` to create flexible and styled buttons.
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant, size, asChild = false, ...props }, ref) => {
+    ({ className, variant, size, theme, asChild = false, ...props }, ref) => {
         const Comp = asChild ? Slot : "button";
 
         return (
             <Comp
-                className={cn(buttonVariants({ variant, size, className }))}
+                className={cn(buttonVariants({ variant, size, className, theme }))}
                 ref={ref}
                 {...props}
             />

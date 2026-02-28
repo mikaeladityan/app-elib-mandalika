@@ -1,102 +1,116 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useController, Control } from "react-hook-form";
-import { ImagePlus, X, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ImagePlus, X, UploadCloud } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
     name: string;
     control: Control<any>;
     label?: string;
     description?: string;
+    className?: string;
 }
 
-export function ImageUploadForm({ name, control, label, description }: ImageUploadProps) {
+export function ImageUploadForm({
+    name,
+    control,
+    label,
+    description,
+    className,
+}: ImageUploadProps) {
     const { field, fieldState } = useController({ name, control });
-    const [isUploading, setIsUploading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Sync preview jika ada default value atau saat field diriset
+    useEffect(() => {
+        if (!field.value) {
+            setPreview(null);
+        } else if (typeof field.value === "string") {
+            setPreview(field.value); // Jika value adalah URL string (edit mode)
+        }
+    }, [field.value]);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setIsUploading(true);
+        // Simpan file asli ke react-hook-form
+        field.onChange(file);
 
-        // SIMULASI UPLOAD: Ganti bagian ini dengan API Upload Anda
-        // Contoh: const url = await uploadToCloudinary(file);
-        const formData = new FormData();
-        formData.append("file", file);
+        // Buat preview URL untuk tampilan lokal
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
 
-        try {
-            // Simulasi delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            const fakeUrl = URL.createObjectURL(file); // Sementara pakai blob URL
-            field.onChange(fakeUrl);
-        } catch (error) {
-            console.error("Upload failed", error);
-        } finally {
-            setIsUploading(false);
-        }
+    const removeImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        field.onChange(null);
+        setPreview(null);
     };
 
     return (
-        <div className="space-y-2">
-            {label && <label className="text-sm font-bold">{label}</label>}
-            <div className="flex items-center gap-4">
-                {field.value ? (
-                    <div className="relative h-24 w-24 overflow-hidden rounded-md border">
-                        <Image
-                            src={field.value}
-                            alt="Preview"
-                            className="h-full w-full object-cover"
-                            width={200}
-                            height={200}
-                        />
+        <div className={cn("space-y-3", className)}>
+            {label && <label className="font-semibold text-sm">{label}</label>}
+
+            <div
+                onClick={() => document.getElementById(`file-input-${name}`)?.click()}
+                className={cn(
+                    "group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200",
+                    "min-h-50 cursor-pointer bg-gray-50/50 hover:bg-gray-100/50",
+                    fieldState.error
+                        ? "border-rose-400 bg-rose-50/30"
+                        : "border-gray-200 hover:border-gray-400",
+                    preview ? "border-solid p-0 overflow-hidden" : "p-6",
+                )}
+            >
+                {preview ? (
+                    <>
+                        <Image src={preview} alt="Preview" fill className="object-cover" />
+                        {/* Overlay saat hover */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <p className="text-white text-xs font-medium bg-black/50 px-3 py-2 rounded-full backdrop-blur-sm">
+                                Ganti Gambar
+                            </p>
+                        </div>
+
                         <button
                             type="button"
-                            onClick={() => field.onChange("")}
-                            className="absolute right-1 top-1 rounded-full bg-rose-500 p-1 text-white shadow-sm"
+                            onClick={removeImage}
+                            className="absolute right-2 top-2 z-10 rounded-full bg-rose-500 p-1.5 text-white shadow-lg hover:bg-rose-600 transition-transform active:scale-90"
                         >
-                            <X size={12} />
+                            <X size={16} />
                         </button>
-                    </div>
+                    </>
                 ) : (
-                    <div
-                        className={cn(
-                            "flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-gray-500 transition hover:border-gray-800",
-                            fieldState.error && "border-rose-500 bg-rose-50",
-                        )}
-                        onClick={() => document.getElementById(`file-input-${name}`)?.click()}
-                    >
-                        {isUploading ? (
-                            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                        ) : (
-                            <>
-                                <ImagePlus className="h-6 w-6 text-gray-400" />
-                                <span className="text-[10px] text-gray-400">Pilih Foto</span>
-                            </>
-                        )}
+                    <div className="flex flex-col items-center text-center">
+                        <div className="mb-3 rounded-full bg-white p-3 shadow-sm border border-gray-100 text-gray-400 group-hover:text-primary transition-colors">
+                            <UploadCloud size={28} />
+                        </div>
+                        <p className="text-sm font-semibold text-gray-600">Klik untuk upload</p>
+                        <p className="mt-1 text-xs text-gray-400">
+                            {description || "WEBP, JPG, atau PNG (Maks. 2MB)"}
+                        </p>
                     </div>
                 )}
-                <input
-                    id={`file-input-${name}`}
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    disabled={isUploading}
-                />
-                <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">
-                        {description || "Max 2MB, format JPG/PNG"}
-                    </p>
-                    {fieldState.error && (
-                        <p className="mt-1 text-xs text-rose-500">{fieldState.error.message}</p>
-                    )}
-                </div>
             </div>
+
+            {fieldState.error && (
+                <p className="text-red-500 text-xs mt-1">{fieldState.error.message}</p>
+            )}
+
+            <input
+                id={`file-input-${name}`}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+            />
         </div>
     );
 }
