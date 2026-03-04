@@ -19,7 +19,18 @@ import {
     Layers,
     Clock,
     BookOpen,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
 } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 // @ts-ignore
 import { format as formatTimeAgo } from "timeago.js";
@@ -33,6 +44,12 @@ export function Post() {
     const data = list.data?.data ?? [];
     const total = list.data?.len ?? 0;
     const isLoading = list.isLoading;
+
+    const page = table.page;
+    const take = table.take;
+    const totalPages = Math.max(1, Math.ceil(total / take));
+    const startItem = total === 0 ? 0 : (page - 1) * take + 1;
+    const endItem = Math.min(page * take, total);
 
     return (
         <div className="flex flex-col gap-6 min-h-screen">
@@ -122,7 +139,7 @@ export function Post() {
 
                                 {/* Content Body */}
                                 <div
-                                    className="text-slate-800 leading-relaxed text-sm font-medium line-clamp-4 overflow-hidden whitespace-pre-wrap break-words [&_p]:mb-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-2"
+                                    className="text-slate-800 leading-relaxed text-sm font-medium line-clamp-4 overflow-hidden whitespace-pre-wrap wrap-break-word [&_p]:mb-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-2"
                                     dangerouslySetInnerHTML={{ __html: post.content }}
                                 />
 
@@ -152,6 +169,84 @@ export function Post() {
                     >
                         Buat Postingan Pertama
                     </Button>
+                </div>
+            )}
+
+            {/* 4. Pagination */}
+            {!isLoading && data && data.length > 0 && (
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-auto p-4 bg-white border border-slate-200 shadow-sm rounded-xl">
+                    <div className="text-sm text-slate-500 font-medium tracking-tight">
+                        Menampilkan <span className="text-slate-900 font-bold">{startItem}</span> -{" "}
+                        <span className="text-slate-900 font-bold">{endItem}</span> dari{" "}
+                        <span className="text-slate-900 font-bold">{total}</span> data
+                    </div>
+
+                    <div className="flex flex-col xl:flex-row items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-slate-500 font-medium">
+                                Baris per halaman:
+                            </span>
+                            <Select value={take.toString()} onValueChange={table.onTakeChange}>
+                                <SelectTrigger className="w-20 rounded-lg bg-slate-50 border-slate-200">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-none shadow-xl">
+                                    {[10, 20, 50, 100].map((size) => (
+                                        <SelectItem
+                                            key={size}
+                                            value={size.toString()}
+                                            className="rounded-lg"
+                                        >
+                                            {size}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => table.onPageChange(1)}
+                                disabled={page === 1}
+                                className="rounded-lg border-slate-200 hover:bg-slate-50"
+                            >
+                                <ChevronsLeft className="h-4 w-4 text-slate-600" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => table.onPageChange(page - 1)}
+                                disabled={page === 1}
+                                className="rounded-lg border-slate-200 hover:bg-slate-50"
+                            >
+                                <ChevronLeft className="h-4 w-4 text-slate-600" />
+                            </Button>
+                            <span className="px-3 text-sm font-medium text-slate-500">
+                                Hal <span className="text-slate-900 font-bold">{page}</span> dari{" "}
+                                <span className="text-slate-900 font-bold">{totalPages}</span>
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => table.onPageChange(page + 1)}
+                                disabled={page >= totalPages}
+                                className="rounded-lg border-slate-200 hover:bg-slate-50"
+                            >
+                                <ChevronRight className="h-4 w-4 text-slate-600" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => table.onPageChange(totalPages)}
+                                disabled={page >= totalPages}
+                                className="rounded-lg border-slate-200 hover:bg-slate-50"
+                            >
+                                <ChevronsRight className="h-4 w-4 text-slate-600" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

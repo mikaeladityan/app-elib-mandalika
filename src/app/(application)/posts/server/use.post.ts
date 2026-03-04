@@ -77,6 +77,20 @@ export function usePostTableState() {
         });
     };
 
+    const onPageChange = useCallback(
+        (newPage: number) => {
+            batchSet({ page: newPage.toString() });
+        },
+        [batchSet],
+    );
+
+    const onTakeChange = useCallback(
+        (newTake: string) => {
+            batchSet({ take: newTake, page: "1" });
+        },
+        [batchSet],
+    );
+
     return {
         tableParams,
         onSort,
@@ -84,6 +98,10 @@ export function usePostTableState() {
         search,
         isTrashMode,
         toggleTrashMode,
+        onPageChange,
+        onTakeChange,
+        page,
+        take,
     };
 }
 
