@@ -233,7 +233,7 @@ export function DetailPost() {
                 </div>
 
                 <div
-                    className="text-slate-800 text-base md:text-lg leading-relaxed font-medium min-h-[100px] whitespace-pre-wrap break-words [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:text-xl [&_h3]:font-bold [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2 [&_a]:text-blue-600 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_pre]:bg-slate-100 [&_pre]:p-4 [&_pre]:rounded-md"
+                    className="text-slate-800 text-base md:text-lg leading-relaxed font-medium min-h-[100px] whitespace-pre-wrap wrap-break-word [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:text-xl [&_h3]:font-bold [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2 [&_a]:text-blue-600 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_pre]:bg-slate-100 [&_pre]:p-4 [&_pre]:rounded-md"
                     dangerouslySetInnerHTML={{ __html: post.content }}
                 />
             </Card>
@@ -347,7 +347,7 @@ export function DetailPost() {
                                             <span />
                                         )}
                                         <span
-                                            className={`text-[10px] font-semibold flex-shrink-0 ${
+                                            className={`text-[10px] font-semibold shrink-0 ${
                                                 currentCommentContent?.length > 180
                                                     ? "text-orange-500"
                                                     : "text-slate-400"
@@ -571,7 +571,7 @@ function CommentThread({
 
             {/* Recursively Render Replies */}
             {comment.replies && comment.replies.length > 0 && (
-                <div className="flex flex-col relative before:absolute before:left-[-1.15rem] md:before:left-[0.6rem] before:top-[-2rem] before:bottom-6 before:border-l-2 before:border-slate-100 -mt-2">
+                <div className="flex flex-col relative before:absolute before:left-[-1.15rem] md:before:left-[0.6rem] before:-top-8 before:bottom-6 before:border-l-2 before:border-slate-100 -mt-2">
                     {comment.replies.slice(0, replyLimit).map((reply: any) => (
                         <CommentThread
                             key={reply.id}
