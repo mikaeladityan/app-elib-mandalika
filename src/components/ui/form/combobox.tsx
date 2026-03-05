@@ -165,3 +165,138 @@ export function ComboboxForm({
         />
     );
 }
+
+export interface ComboboxProps {
+    label: string;
+    placeholder: string;
+    options: ComboboxOption[];
+    value?: string | number;
+    isLoading?: boolean;
+    isError?: boolean;
+    refetch?: () => void;
+    onSelect: (value: string | number, label?: string) => void;
+    sendLabel?: boolean;
+    capitalize?: boolean;
+    required?: boolean;
+    className?: string;
+    error?: { message?: string };
+}
+
+export function Combobox({
+    label,
+    placeholder,
+    options = [],
+    value,
+    isLoading = false,
+    isError = false,
+    refetch,
+    onSelect,
+    sendLabel = false,
+    capitalize = false,
+    required = false,
+    className,
+    error,
+}: ComboboxProps) {
+    const [open, setOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredOptions = searchTerm
+        ? options.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
+        : options;
+
+    const selectedOption = options.find((opt) => {
+        if (typeof opt.value === "number") return opt.value === Number(value);
+        return opt.value === value;
+    });
+
+    const selectedLabel = selectedOption ? selectedOption.label : placeholder;
+
+    return (
+        <div className={cn("w-full space-y-1", className)}>
+            <label className="font-semibold text-sm">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+
+            {isLoading ? (
+                <Skeleton className="h-10 w-full rounded-sm" />
+            ) : isError ? (
+                <div className="flex items-center gap-2 text-rose-500 text-xs font-medium">
+                    Gagal memuat data {label.toLowerCase()}
+                    <Button
+                        type="button"
+                        onClick={refetch}
+                        variant="link"
+                        className="h-auto p-0 text-xs text-rose-600 underline"
+                    >
+                        Muat Ulang
+                    </Button>
+                </div>
+            ) : (
+                <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={open}
+                            className={cn(
+                                "w-full justify-between border-gray-600 rounded-sm font-normal",
+                                !value && "text-muted-foreground",
+                                error?.message && "border-rose-500",
+                            )}
+                        >
+                            <span className={cn("truncate", capitalize && "capitalize")}>
+                                {selectedLabel}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                        <Command shouldFilter={false} className="w-full">
+                            <CommandInput
+                                placeholder={`Cari ${label.toLowerCase()}...`}
+                                value={searchTerm}
+                                onValueChange={setSearchTerm}
+                                className="h-9"
+                            />
+                            <CommandEmpty>Tidak ditemukan</CommandEmpty>
+                            <CommandGroup
+                                className={cn(
+                                    "max-h-60 overflow-y-auto",
+                                    capitalize && "capitalize",
+                                )}
+                            >
+                                {filteredOptions.map((option) => (
+                                    <CommandItem
+                                        key={option.value}
+                                        value={option.label}
+                                        onSelect={() => {
+                                            onSelect(
+                                                option.value,
+                                                sendLabel ? option.label : undefined,
+                                            );
+                                            setOpen(false);
+                                            setSearchTerm("");
+                                        }}
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                value === option.value
+                                                    ? "opacity-100"
+                                                    : "opacity-0",
+                                            )}
+                                        />
+                                        {option.label}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
+            )}
+
+            {error?.message && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
+        </div>
+    );
+}

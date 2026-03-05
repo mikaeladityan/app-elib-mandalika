@@ -1,5 +1,5 @@
 import z from "zod";
-import { RequestBookSchema } from "../../books/server/book.schema";
+import { ResponseBookSchema } from "../../books/server/book.schema";
 
 export const RequestAuthorSchema = z.object({
     first_name: z
@@ -19,7 +19,7 @@ export const ResponseAuthorSchema = RequestAuthorSchema.extend({
     updated_at: z.date(),
     deleted_at: z.date().nullable().optional(),
     books: z.array(
-        RequestBookSchema.pick({
+        ResponseBookSchema.pick({
             categories: true,
             cover_url: true,
             description: true,
