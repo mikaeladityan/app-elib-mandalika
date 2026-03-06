@@ -57,16 +57,16 @@ export const sidebarConfig: SidebarSection[] = [
         ],
     },
 
-    {
-        label: "Pengaturan",
-        collapsible: true,
-        key: "settings",
-        icon: Settings,
-        items: [
-            { title: "Perusahaan", url: "/companies", icon: Building2 },
-            { title: "Pengguna", url: "/settings/users", icon: Users },
-        ],
-    },
+    // {
+    //     label: "Pengaturan",
+    //     collapsible: true,
+    //     key: "settings",
+    //     icon: Settings,
+    //     items: [
+    //         { title: "Perusahaan", url: "/companies", icon: Building2 },
+    //         { title: "Pengguna", url: "/settings/users", icon: Users },
+    //     ],
+    // },
     {
         label: "Dukungan",
         items: [
