@@ -183,7 +183,7 @@ export function useFormAuthor(id?: number, ref?: string) {
             if (ref) {
                 router.push(`/${ref}`);
             } else {
-                router.push("/authors");
+                router.push("/books");
             }
         },
     });

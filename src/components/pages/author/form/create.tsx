@@ -34,7 +34,6 @@ export function CreateAuthor() {
 
     return (
         <Card className="w-full lg:w-6/12">
-            <LogData data={ref} />
             <CardHeader>
                 <CardTitle className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     <div className="flex items-center justify-start gap-3">
